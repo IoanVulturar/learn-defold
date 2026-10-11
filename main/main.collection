@@ -2,20 +2,37 @@ name: "main"
 instances {
   id: "plank"
   prototype: "/main/go/plank.go"
+  position {
+    y: 73.0
+  }
+}
+instances {
+  id: "plank1"
+  prototype: "/main/go/plank.go"
+  position {
+    x: -19.0
+    y: -130.0
+  }
+  rotation {
+    z: 0.17364818
+    w: 0.9848077
+  }
 }
 scale_along_z: 0
 embedded_instances {
   id: "camera"
-  data: "embedded_components {\n"
+  data: "components {\n"
+  "  id: \"click_controller\"\n"
+  "  component: \"/main/scripts/click_controller.script\"\n"
+  "}\n"
+  "embedded_components {\n"
   "  id: \"camera\"\n"
   "  type: \"camera\"\n"
   "  data: \"aspect_ratio: 1.0\\n"
   "fov: 0.7854\\n"
-  "near_z: 0.0\\n"
+  "near_z: 0.1\\n"
   "far_z: 100.0\\n"
   "orthographic_projection: 1\\n"
-  "orthographic_zoom: 0.5\\n"
-  "orthographic_mode: ORTHO_MODE_AUTO_FIT\\n"
   "\"\n"
   "}\n"
   ""

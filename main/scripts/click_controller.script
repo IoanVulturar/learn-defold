@@ -1,0 +1,41 @@
+local CLICKABLE = hash("target")
+-- local RAY_LEN = 2000
+
+function init(self)
+	self.camera = msg.url("#camera") -- resolved in the instance context
+
+	msg.post(".", "acquire_input_focus")          -- receive input
+	msg.post("#camera", "acquire_camera_focus")   -- make this camera active
+	msg.post("@render:", "use_camera_projection") -- default render script uses camera's view/projection
+end
+
+-- Returns the id of the clickable object under the world_pos point (x, y), or nil.
+-- In 2D physics a ray that starts inside a shape doesn't hit it, so we cast
+-- one ray down from above and one up from below, both ending at the click
+-- point. The point is inside an object only if both rays hit that same object.
+local function pick(x, y)
+	-- local groups = { CLICKABLE }
+	-- local down = physics.raycast(vmath.vector3(x, y + RAY_LEN, 0), vmath.vector3(x, y, 0), groups)
+	-- if not down then return nil end
+	-- local up = physics.raycast(vmath.vector3(x, y - RAY_LEN, 0), vmath.vector3(x, y, 0), groups)
+	-- if up and up.id == down.id then
+	-- 	return down.id
+	-- end
+	-- return nil
+	local hit = physics.raycast(vmath.vector3(x, y, 100), vmath.vector3(x, y, -100), { CLICKABLE })
+	return hit and hit.id
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") and action.pressed then
+		-- camera.screen_to_world() function convert from screen space coordinates
+		-- to world coordinates using the view and projection of a camera component
+		local world_pos = camera.screen_to_world(vmath.vector3(action.screen_x, action.screen_y, 0))
+
+		local id = pick(world_pos.x, world_pos.y)
+		if id then
+			print("Clicked game object id:", id)
+			msg.post(id, "toggle_move")
+		end
+	end
+end

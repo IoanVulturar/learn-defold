@@ -19,5 +19,7 @@ scale_mode = stretch
 title = Empty Project
 
 [physics]
-type = 2D
+scale = 0.01
+gravity_y = -1000.0
+type = 3D
 

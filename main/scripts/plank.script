@@ -1,44 +1,49 @@
-go.property("camera_url", msg.url("/camera#camera"))
-
-local function pick_entity(camera_url, screen_x, screen_y, collision_groups)
-	local from = camera.screen_to_world(vmath.vector3(screen_x, screen_y, -100), camera_url)
-	local to = camera.screen_to_world(vmath.vector3(screen_x, screen_y, 100), camera_url)
-	local results = physics.raycast(from, to, collision_groups, { all = false })
-	if not results then
-		return nil
-	end
-	
-	return results[1]
-end
+go.property("distance", 100)   -- how far to move along local X
+go.property("duration", 0.3)   -- animation time in seconds
 
 function init(self)
-	-- Add initialization code here
-	msg.post("@render:", "use_camera_projection")
-	msg.post(".", "acquire_input_focus")
-	
-	self.input_pressed = false
-	self.action = nil
+	self.origin = go.get_position()
+	self.moved = false
 end
 
-function update(self, dt)
-	if not self.input_pressed then
-		return
-	end
+function on_message(self, message_id, message, sender)
+	if message_id == hash("toggle_move") then
+		self.moved = not self.moved
 
-	local result = pick_entity(self.camera_url, self.action.screen_x, self.action.screen_y, { hash("target")})
-	if result then
-		-- DEBUG
-		pprint(result)
-	end
-end
+		-- local X axis, converted to the space `position` uses
+		local local_x = vmath.rotate(go.get_rotation(), vmath.vector3(1, 0, 0))
 
-function on_input(self, action_id, action)
-	if action_id == hash("touch") then
-		self.input_pressed = action.pressed
-		self.action = action
-		-- DEBUG
-		print("Screen X and Y: ", action.screen_x, action.screen_y)
+		local target = self.origin
+		if self.moved then
+			target = self.origin + local_x * self.distance
+		end
+
+		go.cancel_animations(".", "position")
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD,
+		target, go.EASING_OUTQUAD, self.duration)
 	end
 end
 
 
+-- WITHOUT TAKING ROTATION 
+
+-- go.property("distance", 100)   -- how far to move on X, editable in the editor
+-- go.property("duration", 0.3)   -- animation time in seconds
+-- 
+-- function init(self)
+-- 	self.origin = go.get_position()
+-- 	self.moved = false
+-- end
+-- 
+-- function on_message(self, message_id, message, sender)
+-- 	if message_id == hash("toggle_move") then
+-- 		self.moved = not self.moved
+-- 
+-- 		-- moved: origin + distance, not moved: back to origin
+-- 		local target_x = self.origin.x + (self.moved and self.distance or 0)
+-- 
+-- 		go.cancel_animations(".", "position.x")
+-- 		go.animate(".", "position.x", go.PLAYBACK_ONCE_FORWARD,
+-- 		target_x, go.EASING_OUTQUAD, self.duration)
+-- 	end
+-- end
