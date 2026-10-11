@@ -1,0 +1,44 @@
+go.property("camera_url", msg.url("/camera#camera"))
+
+local function pick_entity(camera_url, screen_x, screen_y, collision_groups)
+	local from = camera.screen_to_world(vmath.vector3(screen_x, screen_y, -100), camera_url)
+	local to = camera.screen_to_world(vmath.vector3(screen_x, screen_y, 100), camera_url)
+	local results = physics.raycast(from, to, collision_groups, { all = false })
+	if not results then
+		return nil
+	end
+	
+	return results[1]
+end
+
+function init(self)
+	-- Add initialization code here
+	msg.post("@render:", "use_camera_projection")
+	msg.post(".", "acquire_input_focus")
+	
+	self.input_pressed = false
+	self.action = nil
+end
+
+function update(self, dt)
+	if not self.input_pressed then
+		return
+	end
+
+	local result = pick_entity(self.camera_url, self.action.screen_x, self.action.screen_y, { hash("target")})
+	if result then
+		-- DEBUG
+		pprint(result)
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") then
+		self.input_pressed = action.pressed
+		self.action = action
+		-- DEBUG
+		print("Screen X and Y: ", action.screen_x, action.screen_y)
+	end
+end
+
+
